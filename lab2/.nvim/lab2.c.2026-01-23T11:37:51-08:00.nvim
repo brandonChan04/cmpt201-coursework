@@ -1,0 +1,57 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/wait.h>
+
+#define MAXLINE 1024
+
+int main(void) {
+    char line[MAXLINE];
+
+    printf("Enter programs to run.\n");
+
+    while (1) {
+        printf("> ");
+        fflush(stdout);
+
+        // Read input
+        if (fgets(line, MAXLINE, stdin) == NULL) {
+            // Ctrl+D or input error
+            break;
+        }
+
+        // Remove trailing newline
+        line[strcspn(line, "\n")] = '\0';
+
+        if (line[0] == '\0') {
+            // Empty input, prompt again
+            continue;
+        }
+
+        pid_t pid = fork();
+
+        if (pid < 0) {
+            perror("fork");
+            continue;
+        }
+
+        if (pid == 0) {
+            // Child process
+            execl(line, line, (char *)NULL);
+
+            // If execl returns, it failed
+            printf("Exec failure\n");
+            exit(EXIT_FAILURE);
+        } else {
+            // Parent process
+            int status;
+            waitpid(pid, &status, 0);
+        }
+
+        printf("Enter programs to run.\n");
+    }
+
+    return 0;
+}
+
