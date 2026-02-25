@@ -1,0 +1,189 @@
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define ASSERT(expr)                                                             \
+  do {                                                                           \
+    if (!(expr)) {                                                               \
+      fprintf(stderr, "Assertion failed: %s\n", #expr);                          \
+      fprintf(stderr, "  at %s:%d\n", __FILE__, __LINE__);                       \
+      exit(1);                                                                   \
+    }                                                                            \
+  } while (0)
+
+#define TEST(expr)                                                               \
+  do {                                                                           \
+    if (!(expr)) {                                                               \
+      fprintf(stderr, "Test failed: %s\n", #expr);                               \
+      exit(1);                                                                   \
+    } else {                                                                     \
+      printf("Test passed: %s\n", #expr);                                        \
+    }                                                                            \
+  } while (0)
+
+/* #task 1 */
+
+typedef struct node_task1 {
+  uint64_t data;
+  struct node_task1 *next;
+} node1_t;
+
+static node1_t *head1 = NULL;
+
+static node1_t *make_node1(uint64_t data) {
+  node1_t *n = (node1_t *)malloc(sizeof(node1_t));
+  ASSERT(n != NULL);
+  n->data = data;
+  n->next = NULL;
+  return n;
+}
+
+static void insert_sorted_task1(uint64_t data) {
+  node1_t *new_node = make_node1(data);
+
+  if (head1 == NULL) {
+    head1 = new_node;
+    return;
+  }
+
+  if (data < head1->data) {
+    new_node->next = head1;
+    head1 = new_node;
+    return;
+  }
+
+  node1_t *prev = head1;
+  node1_t *curr = head1->next;
+
+  while (curr != NULL && curr->data <= data) {
+    prev = curr;
+    curr = curr->next;
+  }
+
+  prev->next = new_node;
+  new_node->next = curr;
+}
+
+static int index_of_task1(uint64_t data) {
+  node1_t *curr = head1;
+  int index = 0;
+
+  while (curr != NULL) {
+    if (curr->data == data) {
+      return index;
+    }
+    curr = curr->next;
+    index++;
+  }
+  return -1;
+}
+
+static int main_example_1(void) {
+  insert_sorted_task1(1);
+  insert_sorted_task1(2);
+  insert_sorted_task1(5);
+  insert_sorted_task1(3);
+
+  TEST(index_of_task1(3) == 2);
+
+  insert_sorted_task1(0);
+  insert_sorted_task1(4);
+
+  TEST(index_of_task1(4) == 4);
+
+  return 0;
+}
+
+/* #task 2 */
+
+typedef struct node_task2 {
+  uint64_t data;
+  struct node_task2 *next;
+} node2_t;
+
+typedef struct info {
+  uint64_t sum;
+} info_t;
+
+static node2_t *head2 = NULL;
+static info_t info = {0};
+
+static node2_t *make_node2(uint64_t data) {
+  node2_t *n = (node2_t *)malloc(sizeof(node2_t));
+  ASSERT(n != NULL);
+  n->data = data;
+  n->next = NULL;
+  return n;
+}
+
+static uint64_t sum_list_task2(void) {
+  uint64_t s = 0;
+  for (node2_t *curr = head2; curr != NULL; curr = curr->next) {
+    s += curr->data;
+  }
+  return s;
+}
+
+static void assert_sorted_task2(void) {
+  if (head2 == NULL) return;
+
+  for (node2_t *curr = head2; curr->next != NULL; curr = curr->next) {
+    ASSERT(curr->data <= curr->next->data);
+  }
+}
+
+static void insert_sorted_task2(uint64_t data) {
+  node2_t *new_node = make_node2(data);
+
+  if (head2 == NULL) {
+    head2 = new_node;
+  } else if (data < head2->data) {
+    new_node->next = head2;
+    head2 = new_node;
+  } else {
+    node2_t *prev = head2;
+    node2_t *curr = head2->next;
+
+    while (curr != NULL && curr->data <= data) {
+      prev = curr;
+      curr = curr->next;
+    }
+
+    prev->next = new_node;
+    new_node->next = curr;
+  }
+
+  info.sum += data;
+
+  ASSERT(info.sum == sum_list_task2());
+  assert_sorted_task2();
+}
+
+static int index_of_task2(uint64_t data) {
+  node2_t *curr = head2;
+  int index = 0;
+
+  while (curr != NULL) {
+    if (curr->data == data) {
+      return index;
+    }
+    curr = curr->next;
+    index++;
+  }
+  return -1;
+}
+
+static int main_example_2(void) {
+  insert_sorted_task2(1);
+  insert_sorted_task2(3);
+  insert_sorted_task2(5);
+  insert_sorted_task2(2);
+
+  TEST(info.sum == 1 + 3 + 5 + 2);
+  TEST(index_of_task2(2) == 1);
+
+  ASSERT(info.sum == sum_list_task2());
+
+  return 0;
+}
